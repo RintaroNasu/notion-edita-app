@@ -13,6 +13,10 @@ h3 {
   @apply text-lg font-medium;
 }
 
-.is-editor-empty:first-child::before {
+.is-editor-empty::before {
   content: attr(data-placeholder);
+  color: #888;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
