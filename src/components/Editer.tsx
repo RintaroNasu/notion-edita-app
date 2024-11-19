@@ -1,10 +1,14 @@
 "use client";
-import React, { useCallback, useState } from "react";
+
+import React, { useCallback, useEffect, useState } from "react";
+
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Heading, { Level } from "@tiptap/extension-heading";
 import CodeBlock from "@tiptap/extension-code-block";
 import Placeholder from "@tiptap/extension-placeholder";
+import BulletList from "@tiptap/extension-bullet-list";
+import ListItem from "@tiptap/extension-list-item";
 
 export const Editor = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -14,8 +18,10 @@ export const Editor = () => {
       StarterKit,
       Heading.configure({ levels: [1, 2, 3] }),
       CodeBlock,
+      BulletList,
+      ListItem,
       Placeholder.configure({
-        placeholder: "ここにメモを入力してください",
+        placeholder: "Type / to browse options",
       }),
     ],
     editorProps: {
@@ -24,33 +30,58 @@ export const Editor = () => {
       },
     },
     onUpdate: ({ editor }) => {
-      const { from, to } = editor.state.selection;
-      const text = editor.state.doc.textBetween(from - 1, to, " ");
-      if (text === "/") {
+      const allText = editor.getText().split("\n");
+      const lastLine = allText[allText.length - 1];
+
+      if (lastLine === "/") {
         setShowMenu(true);
-      } else {
-        setShowMenu(false);
+        return;
       }
+      setShowMenu(false);
+
+      setTimeout(() => {
+        if (editor.isEmpty) {
+          editor.commands.clearNodes();
+        }
+      }, 0);
     },
   });
 
   const addHeading = useCallback(
     (level: Level) => {
       if (!editor) return;
+      const { from } = editor.state.selection;
+
       editor
         .chain()
         .focus()
-        .deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.from })
+        .deleteRange({ from: from - 1, to: from })
+        .insertContent("<br>")
         .toggleHeading({ level })
         .run();
+
       setShowMenu(false);
     },
     [editor]
   );
 
+  const toggleBulletList = useCallback(() => {
+    if (editor) {
+      const { from } = editor.state.selection;
+      editor.chain().focus().toggleBulletList().run();
+      setShowMenu(false);
+    }
+  }, [editor]);
+
+  useEffect(() => {
+    if (editor && editor.isEmpty) {
+      editor.commands.blur();
+    }
+  }, [editor]);
+
   return (
-    <div className="relative border border-gray-300 rounded-lg mx-2 shadow-sm">
-      <EditorContent editor={editor} className="w-full h-full p-8 pt-4 " />
+    <div className="mt-4 relative border-gray-300 rounded-lg mx-2 border-none">
+      <EditorContent editor={editor} className="w-full h-full pl-4" />
       {showMenu && (
         <div className="absolute bg-white border border-gray-300 shadow-lg p-2 rounded-lg mt-2">
           <button onClick={() => addHeading(1)} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
@@ -59,10 +90,11 @@ export const Editor = () => {
           <button onClick={() => addHeading(2)} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
             見出し 2
           </button>
+          <button onClick={toggleBulletList} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+            インデント丸ボタン
+          </button>
         </div>
       )}
     </div>
   );
 };
-
-export default Editor;
