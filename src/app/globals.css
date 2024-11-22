@@ -13,14 +13,22 @@ h3 {
   @apply text-lg font-medium;
 }
 
-ul {
-  list-style-type: disc;
+ul[data-type="taskList"] {
+  @apply list-none;
+  li {
+    @apply flex gap-2;
+  }
+}
+
+ul:not([data-type="taskList"]) {
+  @apply list-disc;
+}
+
+ol {
+  @apply list-decimal;
 }
 
 .is-editor-empty::before {
   content: attr(data-placeholder);
-  color: #888;
-  position: absolute;
-  top: 0;
-  left: 0;
+  @apply text-gray-500 absolute top-0 left-0;
 }
