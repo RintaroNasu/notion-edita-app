@@ -1,6 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.is-editor-empty::before {
+  content: attr(data-placeholder);
+  @apply text-gray-500 absolute top-0 left-0;
+}
+
 h1 {
   @apply text-2xl font-bold;
 }
@@ -28,7 +34,6 @@ ol {
   @apply list-decimal;
 }
 
-.is-editor-empty::before {
-  content: attr(data-placeholder);
-  @apply text-gray-500 absolute top-0 left-0;
+blockquote {
+  @apply border-l-8 border-gray-300 my-4 px-4 italic text-gray-500;
 }

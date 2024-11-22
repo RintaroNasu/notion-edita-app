@@ -11,6 +11,7 @@ import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import BlockQuote from "@tiptap/extension-blockquote";
 
 export const Editor = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -23,6 +24,7 @@ export const Editor = () => {
       BulletList,
       OrderedList,
       TaskList,
+      BlockQuote,
       TaskItem.configure({
         nested: true,
       }),
@@ -133,6 +135,26 @@ export const Editor = () => {
     setShowMenu(false);
   }, [editor]);
 
+  const toggleBlockQuote = useCallback(() => {
+    if (!editor) return;
+    const { from } = editor.state.selection;
+
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from: from - 1, to: from })
+      .insertContent(" ")
+      .setNode("paragraph")
+      .toggleBlockquote()
+      .run();
+
+    if (editor.isEmpty) {
+      editor.commands.clearNodes();
+    }
+  
+    setShowMenu(false);
+  }, [editor]);
+
   useEffect(() => {
     if (editor && editor.isEmpty) {
       editor.commands.blur();
@@ -158,6 +180,9 @@ export const Editor = () => {
           </button>
           <button onClick={toggleTaskList} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
             チェックリスト
+          </button>
+          <button onClick={toggleBlockQuote} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+            引用ブロック
           </button>
         </div>
       )}
