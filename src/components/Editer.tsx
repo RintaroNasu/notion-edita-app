@@ -8,6 +8,9 @@ import Heading, { Level } from "@tiptap/extension-heading";
 import CodeBlock from "@tiptap/extension-code-block";
 import Placeholder from "@tiptap/extension-placeholder";
 import BulletList from "@tiptap/extension-bullet-list";
+import OrderedList from "@tiptap/extension-ordered-list";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
 
 export const Editor = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -18,6 +21,11 @@ export const Editor = () => {
       Heading.configure({ levels: [1, 2, 3] }),
       CodeBlock,
       BulletList,
+      OrderedList,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
       Placeholder.configure({
         placeholder: "Type / to browse options",
       }),
@@ -55,13 +63,13 @@ export const Editor = () => {
         .focus()
         .deleteRange({ from: from - 1, to: from })
         .insertContent(" ")
-        .setNode("paragraph") 
+        .setNode("paragraph")
         .toggleHeading({ level })
         .run();
 
       setShowMenu(false);
     },
-    
+
     [editor]
   );
 
@@ -74,7 +82,48 @@ export const Editor = () => {
       .focus()
       .deleteRange({ from: from - 1, to: from })
       .insertContent(" ")
+      .setNode("paragraph")
       .toggleBulletList()
+      .run();
+
+    if (editor.isEmpty) {
+      editor.commands.clearNodes();
+    }
+
+    setShowMenu(false);
+  }, [editor]);
+
+  const toggleOrderList = useCallback(() => {
+    if (!editor) return;
+    const { from } = editor.state.selection;
+
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from: from - 1, to: from })
+      .insertContent(" ")
+      .setNode("paragraph")
+      .toggleOrderedList()
+      .run();
+
+    if (editor.isEmpty) {
+      editor.commands.clearNodes();
+    }
+
+    setShowMenu(false);
+  }, [editor]);
+
+  const toggleTaskList = useCallback(() => {
+    if (!editor) return;
+    const { from } = editor.state.selection;
+
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from: from - 1, to: from })
+      .insertContent(" ")
+      .setNode("paragraph")
+      .toggleTaskList()
       .run();
 
     if (editor.isEmpty) {
@@ -102,7 +151,13 @@ export const Editor = () => {
             見出し 2
           </button>
           <button onClick={toggleBulletList} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
-            インデント丸ボタン
+            丸付きリスト
+          </button>
+          <button onClick={toggleOrderList} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+            番号付きリスト
+          </button>
+          <button onClick={toggleTaskList} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+            チェックリスト
           </button>
         </div>
       )}
