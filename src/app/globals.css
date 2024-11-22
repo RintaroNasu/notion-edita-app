@@ -13,6 +13,10 @@ h3 {
   @apply text-lg font-medium;
 }
 
+ul {
+  list-style-type: disc;
+}
+
 .is-editor-empty::before {
   content: attr(data-placeholder);
   color: #888;

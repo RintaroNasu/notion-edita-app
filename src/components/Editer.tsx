@@ -8,7 +8,6 @@ import Heading, { Level } from "@tiptap/extension-heading";
 import CodeBlock from "@tiptap/extension-code-block";
 import Placeholder from "@tiptap/extension-placeholder";
 import BulletList from "@tiptap/extension-bullet-list";
-import ListItem from "@tiptap/extension-list-item";
 
 export const Editor = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -19,7 +18,6 @@ export const Editor = () => {
       Heading.configure({ levels: [1, 2, 3] }),
       CodeBlock,
       BulletList,
-      ListItem,
       Placeholder.configure({
         placeholder: "Type / to browse options",
       }),
@@ -56,21 +54,34 @@ export const Editor = () => {
         .chain()
         .focus()
         .deleteRange({ from: from - 1, to: from })
-        .insertContent("<br>")
+        .insertContent(" ")
+        .setNode("paragraph") 
         .toggleHeading({ level })
         .run();
 
       setShowMenu(false);
     },
+    
     [editor]
   );
 
   const toggleBulletList = useCallback(() => {
-    if (editor) {
-      const { from } = editor.state.selection;
-      editor.chain().focus().toggleBulletList().run();
-      setShowMenu(false);
+    if (!editor) return;
+    const { from } = editor.state.selection;
+
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from: from - 1, to: from })
+      .insertContent(" ")
+      .toggleBulletList()
+      .run();
+
+    if (editor.isEmpty) {
+      editor.commands.clearNodes();
     }
+
+    setShowMenu(false);
   }, [editor]);
 
   useEffect(() => {
