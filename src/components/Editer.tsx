@@ -12,9 +12,14 @@ import OrderedList from "@tiptap/extension-ordered-list";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import BlockQuote from "@tiptap/extension-blockquote";
+import Image from "@tiptap/extension-image";
+
+import { useDropzone } from "react-dropzone";
 
 export const Editor = () => {
   const [showMenu, setShowMenu] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -25,6 +30,7 @@ export const Editor = () => {
       OrderedList,
       TaskList,
       BlockQuote,
+      Image,
       TaskItem.configure({
         nested: true,
       }),
@@ -38,14 +44,13 @@ export const Editor = () => {
       },
     },
     onUpdate: ({ editor }) => {
-      const allText = editor.getText().split("\n");
-      const lastLine = allText[allText.length - 1];
+      const currentLine = editor.state.doc.textBetween(editor.state.selection.$anchor.start(), editor.state.selection.$anchor.end(), "\n");
 
-      if (lastLine === "/") {
+      if (currentLine.trim() === "/") {
         setShowMenu(true);
-        return;
+      } else {
+        setShowMenu(false);
       }
-      setShowMenu(false);
 
       setTimeout(() => {
         if (editor.isEmpty) {
@@ -151,9 +156,52 @@ export const Editor = () => {
     if (editor.isEmpty) {
       editor.commands.clearNodes();
     }
-  
+
     setShowMenu(false);
   }, [editor]);
+
+  const toggleImage = useCallback(() => {
+    if (!editor) return;
+    const { from } = editor.state.selection;
+
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from: from - 1, to: from })
+      .run();
+
+    setShowImageUpload(true);
+    setShowMenu(false);
+  }, [editor]);
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        setUploadedImage(reader.result as string);
+        if (editor) {
+          editor
+            .chain()
+            .focus()
+            .setImage({ src: reader.result as string })
+            .run();
+        }
+        setShowImageUpload(false);
+        setShowMenu(false);
+      };
+      reader.readAsDataURL(file);
+    },
+    [editor]
+  );
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [],
+    },
+  });
 
   useEffect(() => {
     if (editor && editor.isEmpty) {
@@ -184,6 +232,15 @@ export const Editor = () => {
           <button onClick={toggleBlockQuote} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
             引用ブロック
           </button>
+          <button onClick={toggleImage} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+            画像
+          </button>
+        </div>
+      )}
+      {showImageUpload && (
+        <div {...getRootProps()} className="border-2 border-dashed border-gray-300 p-6 rounded-lg text-center">
+          <input {...getInputProps()} />
+          <p className="text-gray-500">Drag and drop or click to upload an image</p>
         </div>
       )}
     </div>
