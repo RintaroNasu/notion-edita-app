@@ -13,6 +13,10 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import BlockQuote from "@tiptap/extension-blockquote";
 import Image from "@tiptap/extension-image";
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
 
 import { useDropzone } from "react-dropzone";
 
@@ -31,6 +35,10 @@ export const Editor = () => {
       TaskList,
       BlockQuote,
       Image,
+      Table,
+      TableRow,
+      TableCell,
+      TableHeader,
       TaskItem.configure({
         nested: true,
       }),
@@ -203,6 +211,24 @@ export const Editor = () => {
     },
   });
 
+  const toggleTable = useCallback(() => {
+    if (!editor) return;
+    const { from } = editor.state.selection;
+    console.log(from);
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from: from - 1, to: from })
+      .insertContent(" ")
+      .setNode("paragraph")
+      .insertTable({ rows: 3, cols: 3 })
+      .run();
+
+    editor.commands.insertContentAt(editor.state.selection.to, "\n<p></p>");
+
+    setShowMenu(false);
+  }, [editor]);
+
   useEffect(() => {
     if (editor && editor.isEmpty) {
       editor.commands.blur();
@@ -234,6 +260,9 @@ export const Editor = () => {
           </button>
           <button onClick={toggleImage} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
             画像
+          </button>
+          <button onClick={toggleTable} className="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+            テーブル
           </button>
         </div>
       )}
