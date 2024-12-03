@@ -25,6 +25,7 @@ const DEFAULT_EDITOR_LINES = 15;
 
 export const Editor = () => {
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   const editor = useEditor({
     extensions: [
@@ -57,6 +58,8 @@ export const Editor = () => {
       const currentLine = editor.state.doc.textBetween(editor.state.selection.$anchor.start(), editor.state.selection.$anchor.end(), "\n");
 
       if (currentLine.trim() === "/") {
+        const { left, bottom } = editor.view.coordsAtPos(editor.state.selection.$anchor.pos);
+        setMenuPosition({ top: bottom + window.scrollY, left });
         setShowMenu(true);
       } else {
         setShowMenu(false);
@@ -82,7 +85,7 @@ export const Editor = () => {
     <div className="mt-4 relative border border-gray-300 rounded-lg mx-2 min-h-[400px]">
       <EditorContent editor={editor} className="w-full h-full pl-4 pt-2" />
       <input id="image-upload-input" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-      {showMenu && <EditorMenu addHeading={addHeading} toggleEditorAction={toggleEditorAction} openFileInput={openFileInput} toggleTable={toggleTable} />}
+      {showMenu && <EditorMenu addHeading={addHeading} toggleEditorAction={toggleEditorAction} openFileInput={openFileInput} toggleTable={toggleTable} position={menuPosition} />}
     </div>
   );
 };
